@@ -1,12 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
+import plot
 
 def sum_of_density(po, samples, h, norm):
     return np.sum([norm*np.exp(-(po-sample)**2/(2*h**2)) for sample in samples])
 
 
-def kde(samples=np.random.normal(0, 1, 100), h=0.3, plot=False):
+def kde(samples=np.random.normal(0, 1, 100), h=0.3, make_plot=False):
     # density estimation from given samples with Kernel Density Estimator
     # Input
     # samples    : DxN matrix of data points
@@ -30,9 +29,7 @@ def kde(samples=np.random.normal(0, 1, 100), h=0.3, plot=False):
         estDensity.append(sum_of_density(po, samples, h, norm))
     estDensity = np.stack((pos, estDensity), axis=1)
     
-    if plot:
-        plt.plot(estDensity[:, 0], estDensity[:, 1], 'r', linewidth=1.5, label='Estimated Distribution')
-        plt.grid()
-        plt.legend()
-        
+    if make_plot:
+        plot(estDensity[:, 0], estDensity[:, 1], 'Estimated Distribution')
+
     return estDensity
