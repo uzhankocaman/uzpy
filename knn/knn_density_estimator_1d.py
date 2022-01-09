@@ -22,8 +22,11 @@ def knn_density_estimator(samples=np.random.normal(0, 1, 100), k=30, make_plot=F
     V = 2*d[:, k-1]
     estDensity = (k / (N*V))
     f = interp1d(pos, estDensity)
-    estDensity = np.stack((pos, estDensity), axis=1)
+    #estDensity = np.stack((pos, estDensity), axis=1)
     
     if make_plot:
         plot.plot(estDensity[:, 0], estDensity[:, 1], f'{label}', color)
-    return f
+    return estDensity
+
+estDensity = knn_density_estimator()
+print(estDensity.shape)
