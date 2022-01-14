@@ -16,22 +16,31 @@ def empirical_density_estimation(samples: np.ndarray, nbins: int, plot: bool = T
     bins = bins[:-1] + bin_width/2
     
     if plot:
-        plt.scatter(bins, epdf)
-        plt.plot(bins, epdf)
+        #plt.scatter(bins, epdf, 'b')
+        plt.plot(bins, epdf, 'b', label='estimated')
         plt.grid()
         plt.xlabel("x")
         plt.ylabel("p(x)")
-        plt.show()
     
     return epdf, bins
       
-def lognormal_density_estimation(samples: np.ndarray)
+def lognormal_density_estimation(samples: np.ndarray, nbins: int):
+    mean = np.mean(samples)
+    variance = np.var(samples)
+    x = np.linspace(min(samples), max(samples), 100)
+    pdf = (np.exp(-(np.log(x) - mean)**2 / (2 * variance))/ (x * np.sqrt(2 * np.pi) * variance))
+    plt.plot(x, pdf, 'r', label='empirical')
+    epdf, bins = empirical_density_estimation(samples, nbins)
+    plt.legend(['empirical', 'estimated'])
+    return epdf, bins
 
 if __name__ == '__main__':
     mu = 3
     sigma = 1
-    size = 1000
+    size = 100
     y = np.random.lognormal(mu, sigma, size)
     
-    epdf_lognormal, x_lognormal = empirical_density_estimation(y, nbins)
+    nbins=20
+    
+    epdf_lognormal, x_lognormal = lognormal_density_estimation(y, nbins)
     
