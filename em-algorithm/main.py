@@ -67,52 +67,41 @@ def EStep(means, covariances, weights, X):
     return [logLikelihood, gamma]
 
 
-if __name__ == '__main__':
-    # load datasets
-    data = [[], [], []]
-    data[0] = np.loadtxt('data1')
-    data[1] = np.loadtxt('data2')
-    data[2] = np.loadtxt('data3')
+def MStep(gamma, X):
+    # Maximization step of the EM Algorithm
+    #
+    # INPUT:
+    # gamma          : NxK matrix of responsibilities for N datapoints and K Gaussians.
+    # X              : Input data (NxD matrix for N datapoints of dimension D).
+    #
+    # N is number of data points
+    # D is the dimension of the data points
+    # K is number of Gaussians
+    #
+    # OUTPUT:
+    # logLikelihood  : Log-likelihood (a scalar).
+    # means          : Mean for each gaussian (KxD).
+    # weights        : Vector of weights of each gaussian (1xK).
+    # covariances    : Covariance matrices for each component(DxDxK).
+    
+    n_training_samples, dim = X.shape
+    K = gamma.shape[1]
 
-    weights = [0.341398243018411, 0.367330235091507, 0.291271521890082]
-    
-    means = [
-            [3.006132088737974,  3.093100568285389],
-            [0.196675859954268, -0.034521603109466],
-            [-2.957520528756456,  2.991192198151507]
-            ]
-    
-    covariances = np.zeros((2, 2, 3))
-    
-    covariances[:, :, 0] = [
-        [0.949104844872119, -0.170637132238246],
-        [-0.170637132238246,  2.011158266600814]
-    ]
-    
-    covariances[:, :, 1] = [
-        [0.837094104536474, 0.044657749659523],
-        [0.044657749659523, 1.327399518241827]
-    ]
-    
-    covariances[:, :, 2] = [
-        [1.160661833073708, 0.058151801834449],
-        [0.058151801834449, 0.927437098385088]
-    ]
+    means = np.zeros((K, dim))
+    covariances = np.zeros((dim, dim, K))
 
-    loglikelihoods = [-1.098653352229586e+03, -1.706951862352565e+03, -1.292882804841197e+03]
-    for idx in range(3):
-        ll = getLogLikelihood(means, weights, covariances, data[idx])
-        diff = loglikelihoods[idx] - ll
-        print('LogLikelihood is {0}, should be {1}, difference: {2}\n'.format(ll, loglikelihoods[idx], diff))
-    # test EStep
-    print('\n')
-    print('(b) testing EStep function')
-    # load gamma values
-    testgamma = [[], [], []]
-    testgamma[0] = np.loadtxt('gamma1')
-    testgamma[1] = np.loadtxt('gamma2')
-    testgamma[2] = np.loadtxt('gamma3')
-    for idx in range(3):
-        _, gamma = EStep(means, covariances, weights, data[idx])
-        absdiff = testgamma[idx] - gamma
-        print('Sum of difference of gammas: {0}\n'.format(np.sum(absdiff)))
+    Nk = gamma.sum(axis=0)
+    weights = Nk / n_training_samples
+
+    means = np.divide(gamma.T.dot(X), Nk[:, np.newaxis])
+
+    for i in range(K):
+        auxSigma = np.zeros((dim, dim))
+        for j in range(n_training_samples):
+            meansDiff = X[j] - means[i]
+            auxSigma = auxSigma + gamma[j, i] * np.outer(meansDiff.T, meansDiff)
+        covariances[:, :, i] = auxSigma/Nk[i]
+
+    logLikelihood = getLogLikelihood(means, weights, covariances, X)
+
+    return weights, means, covariances, logLikelihood
